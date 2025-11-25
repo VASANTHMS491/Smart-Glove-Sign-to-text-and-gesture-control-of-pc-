@@ -1,0 +1,50 @@
+import serial
+import pyautogui
+import time
+
+ser = serial.Serial('COM6', 115200, timeout=0.001)
+THRESH = 2000
+
+last_action = None
+
+print("Fast gesture control mode active...")
+
+while True:
+    try:
+        line = ser.readline().decode(errors='ignore').strip()
+        if not line:
+            continue
+
+        try:
+            vRing, vPinky, vMiddle, vIndex = map(int, line.split(','))
+        except ValueError:
+            continue
+
+        ring = vRing > THRESH
+        pinky = vPinky > THRESH
+        middle = vMiddle > THRESH
+        index = vIndex > THRESH
+
+        # Define direct gestures here
+        if ring == 0 and pinky == 0 and middle == 0 and index == 1:
+            action = 'down'      # A
+        elif ring == 0 and pinky == 1 and middle == 0 and index == 0:
+            action = 'left'      # B
+        elif ring == 0 and pinky == 0 and middle == 1 and index == 0:
+            action = 'right'     # D
+        elif ring == 1 and pinky == 0 and middle == 0 and index == 0:
+            action = 'up'        # H
+        else:
+            action = None
+
+        # Perform action only once per continuous gesture
+        if action and action != last_action:
+            pyautogui.press(action)
+            print(f"Action: {action.upper()} | Values: {vRing},{vPinky},{vMiddle},{vIndex}")
+            last_action = action
+        elif action is None:
+            last_action = None
+
+    except KeyboardInterrupt:
+        print("Stopped.")
+        break
