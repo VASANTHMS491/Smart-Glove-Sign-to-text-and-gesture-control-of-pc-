@@ -1,0 +1,63 @@
+import serial
+import time
+
+ser = serial.Serial('COM6', 115200, timeout=0.001)
+THRESH = 2000
+
+last_letter = None
+last_detect_time = 0
+is_touch_active = False
+
+def detect_letter(ring, pinky, middle, index):
+    pattern = (ring << 3) | (pinky << 2) | (middle << 1) | index
+    mapping = {
+        0b0001: 'A', 0b0010: 'B', 0b0011: 'C', 0b0100: 'D',
+        0b0101: 'E', 0b0110: 'F', 0b0111: 'G', 0b1000: 'H',
+        0b1001: 'I', 0b1010: 'J', 0b1011: 'K', 0b1100: 'L',
+        0b1101: 'M', 0b1110: 'N', 0b1111: 'O'
+    }
+    return mapping.get(pattern)
+
+print("Listening for ESP32 data...")
+
+while True:
+    try:
+        line = ser.readline().decode(errors='ignore').strip()
+        if not line:
+            continue
+
+        try:
+            vRing, vPinky, vMiddle, vIndex = map(int, line.split(','))
+        except ValueError:
+            continue
+
+        ring = vRing > THRESH
+        pinky = vPinky > THRESH
+        middle = vMiddle > THRESH
+        index = vIndex > THRESH
+
+        letter = detect_letter(ring, pinky, middle, index)
+
+        current_time = time.time()
+
+        if letter:
+            if letter == last_letter:
+                # If the same letter continues for 2 seconds
+                if not is_touch_active and (current_time - last_detect_time) >= 0.5:
+                    print(f"Detected: {letter} | Values: {vRing},{vPinky},{vMiddle},{vIndex}")
+                    is_touch_active = True
+            else:
+                # New letter detected, reset timer
+                last_letter = letter
+                last_detect_time = current_time
+                is_touch_active = False
+        else:
+            # Touch released — reset
+            is_touch_active = False
+            last_letter = None
+            last_detect_time = 0
+
+    except KeyboardInterrupt:
+        print("Stopped.")
+        break
+
