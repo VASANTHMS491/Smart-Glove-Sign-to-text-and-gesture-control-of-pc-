@@ -1,0 +1,20 @@
+#define RING 33
+#define PINKY 32
+#define MIDDLE 35
+#define INDEX 34
+
+void setup() {
+  Serial.begin(115200);
+  analogSetPinAttenuation(RING, ADC_11db);
+  analogSetPinAttenuation(PINKY, ADC_11db);
+  analogSetPinAttenuation(MIDDLE, ADC_11db);
+  analogSetPinAttenuation(INDEX, ADC_11db);
+}
+
+void loop() {
+  Serial.print(analogRead(RING)); Serial.print(",");
+  Serial.print(analogRead(PINKY)); Serial.print(",");
+  Serial.print(analogRead(MIDDLE)); Serial.print(",");
+  Serial.println(analogRead(INDEX));
+  delay(5); // 👈 this tiny delay fixes serial merging
+}
