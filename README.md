@@ -24,3 +24,4 @@ Simple aluminium based DIY touch sensors for low-cost and high responsiveness.
   1.pyserial
   2.pyautogui
   3.time
+  4.serial
