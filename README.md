@@ -25,6 +25,36 @@ Simple aluminium based DIY touch sensors for low-cost and high responsiveness.
   2.pyautogui
   3.time
   4.serial
+
+  ## Pin Connections (Wiring Scheme)
+
+The Smart Glove sensors are connected to the ESP32 as follows:
+
+- **Common Ground:** Connect the **GND** pin of the ESP32 to a **common palm conductor** (all finger sensors share this).  
+- **Resistors:** From the common palm, connect a **10kΩ resistor** to each corresponding **GPIO pin**.  
+- **Finger Sensors (Foil):** Connect each finger’s foil sensor to **VCC (3.3V)** from the ESP32.
+
+### Finger-to-Pin Mapping
+
+| Finger | ESP32 GPIO Pin | Notes |
+| ------ | -------------- | ----- |
+| Index  | GPIO34 (VP)    | Input Only Pin → MUST use external 10kΩ resistor |
+| Middle | GPIO35         | Input Only Pin → MUST use external 10kΩ resistor |
+| Ring   | GPIO32         | Can use internal pull-up or external 10kΩ resistor |
+| Pinky  | GPIO33         | Can use internal pull-up or external 10kΩ resistor |
+
+### Wiring Summary Diagram
+```
+      VCC (3.3V)
+         |
+     Finger Foil
+         |
+      [touch]
+         |
+    Common Palm ------ 10kΩ resistor ------ GPIO Pin (ESP32)
+         |
+    GND (ESP32)
+```
 ## Alphabet Mappings (Sensor → Letter Mapping)
   The glove uses **four touch sensors** (Index, Middle, Ring, Pinky).  
 Each sensor outputs an analog value, and if it crosses a threshold, that finger is considered **touched (1)**, otherwise **not touched (0)**.
@@ -110,9 +140,32 @@ Follow these steps to get the **Smart Glove** project up and running.
 
 ```
 pip install pyserial pyautogui
-
+```
 pyserial → Communicates with the ESP32 over the serial port.
 pyautogui → Simulates keyboard/mouse actions for gesture control.
 
+### 4. Run the Python Script
+Open the Python script (gesture_control.py or alphabet_translation.py).
+Make sure the COM port matches your ESP32 (update ser = serial.Serial('COM6', 115200) if needed).
+Run the script:
+```
+python gesture_control.py
+```
+The terminal will display detected gestures or letters in real-time.
 
+### 5. Using the Glove
+Alphabet Mode: Detects finger combinations to translate into letters.
+Gesture Mode: Controls the PC (arrow keys, clicks, or custom actions) based on gestures.
+⚠ Ensure the threshold (THRESH) in the Python script matches your sensor values for accurate detection.
+
+## Troubleshooting
+
+### 1. Sensors Triggering Randomly
+- Ensure the **ESP32 and glove share a common ground**.  
+- Adjust the **threshold** (`THRESH`) or **sensor sensitivity** in the code.  
+- Check that the **aluminium foil sensors are not touching each other** accidentally.
+
+### 2. Gestures Feeling Slow
+- Reduce any **delays** in the Python script to make detection faster.  
+- Increase the **serial baud rate** in the ESP32 code (e.g., `115200`) for faster data transfer.
 
